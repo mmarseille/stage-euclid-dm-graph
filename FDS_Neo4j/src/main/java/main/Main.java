@@ -12,6 +12,9 @@ public class Main {
 		
 		Neo4J_Tree tree = new Neo4J_Tree("bolt://localhost:11005", "neo4j", "0");
 		
+		tree.deleteTree();
+		tree.createTree();
+		
 	}
 	
 }

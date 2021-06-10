@@ -104,7 +104,6 @@ public class Branch {
 				
 				
 				});
-				node_id++;
 				child.addChildren();
 			}
 		
