@@ -10,8 +10,8 @@ public class Main {
 				hello.printGreeting2("t'habites dans le coin ou quoi");
 			}*/
 		
-		Branch start = new Branch();
-		start.createTree();
+		Neo4J_Tree tree = new Neo4J_Tree("bolt://localhost:11005", "neo4j", "0");
+		
 	}
 	
 }

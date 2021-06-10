@@ -29,11 +29,14 @@ public class HelloWorld implements AutoCloseable{
 	public void printGreeting(final String message) {
 		try ( Session session = driver.session() ){
 			Instant start = Instant.now();
-			for (int i=0; i<1000; i++) {
+			for (int i=0; i<1; i++) {
 				session.writeTransaction(new TransactionWork<String>() {
 
 					@Override
 					public String execute(Transaction tx) {
+						tx.run("CREATE (x:Greet)");
+						tx.run("CREATE (x:Greet)");
+						tx.run("CREATE (x:Gsreet)");
 						Result result = tx.run("CREATE (a:Greeting) " +
 									"SET a.message = $message " +
 									"RETURN a.message + ', from node ' + id(a)",

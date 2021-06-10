@@ -1,9 +1,20 @@
 package main;
 
+import static org.neo4j.driver.Values.parameters;
+
+import java.time.Duration;
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.neo4j.driver.Driver;
+import org.neo4j.driver.Result;
+import org.neo4j.driver.Session;
+import org.neo4j.driver.Transaction;
+import org.neo4j.driver.TransactionWork;
+
 public class Branch {
+	private final Driver driver;
 	private Branch parent = null;
 	private List<Branch> children = new ArrayList<>();
 	private int max_children = 3;
@@ -14,16 +25,45 @@ public class Branch {
 	private static int nb_nodes = 0;
 	private static int node_id = 0;
 	
-	public Branch() {
+	public Branch(Driver driver) {
+		this.driver = driver;
 		this.nodename = String.format("n%s", node_id);
-		System.out.println(String.format("CREATE (%s:Node)",this.nodename));
+		
+		try ( Session session = driver.session() ){
+				session.writeTransaction(new TransactionWork<Void>() {
+
+					@Override
+					public Void execute(Transaction tx) {
+						tx.run(String.format("CREATE (%s:Node{name: $name}) ",Branch.this.nodename), parameters("name",Branch.this.nodename));
+						return null;
+					}
+				
+				
+				});
+			}
+		
 		node_id++;
-	}
+		
+		}
+		
 	
-	public Branch(Branch parent, String nodeName) {
+	public Branch(Driver driver, Branch parent, String nodeName) {
+		this.driver = driver;
 		this.parent = parent;
 		this.nodename = String.format("n%s", node_id);
-		System.out.println(String.format("CREATE (%s:Node)",this.nodename));
+		try ( Session session = driver.session() ){
+			session.writeTransaction(new TransactionWork<Void>() {
+
+				@Override
+				public Void execute(Transaction tx) {
+					tx.run(String.format("CREATE (%s:Node{name: $name}) ",Branch.this.nodename), parameters("name",Branch.this.nodename));
+					return null;
+				}
+			
+			
+			});
+		}
+	
 		node_id++;
 	}
 	
@@ -43,13 +83,31 @@ public class Branch {
 		
 		depth++;
 		
-		for (int i=0; i<nb; i++) {
-			Branch child = new Branch(parent, String.format("n%s",nb_nodes-nb+i+1));
-			children.add(child);
-			
-			System.out.println(String.format("CREATE (%s)-[:CHILD_OF]->(%s)", child.nodename, this.nodename));
-			
-			child.addChildren();
+		try ( Session session = driver.session() ){
+			for (int i=0; i<nb; i++) {
+				Branch child = new Branch(driver, parent, String.format("n%s",nb_nodes-nb+i+1));
+				children.add(child);
+				
+				session.writeTransaction(new TransactionWork<Void>() {
+
+					@Override
+					public Void execute(Transaction tx) {
+						int nb_children = Branch.this.children.size();
+						Branch last_child = Branch.this.children.get(nb_children-1);
+						System.out.println("NAME:: "+last_child.nodename);
+						//tx.run(String.format("CREATE (%s)-[:CHILD_OF]->(%s)", last_child.nodename, Branch.this.nodename));
+						tx.run("MATCH (n1:Node) WHERE n1.name = $name1 "+
+								"MATCH (n2:Node) WHERE n2.name = $name2 "+
+								"CREATE (n1)-[:CHILD_OF]->(n2)", parameters("name1",last_child.nodename, "name2", Branch.this.nodename));
+						return null;
+					}
+				
+				
+				});
+				node_id++;
+				child.addChildren();
+			}
+		
 		}
 		
 	}
