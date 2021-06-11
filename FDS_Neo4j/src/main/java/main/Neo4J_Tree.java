@@ -14,8 +14,8 @@ public class Neo4J_Tree implements AutoCloseable{
 		driver = GraphDatabase.driver(uri, AuthTokens.basic(user, password));
 	}
 	
-	public void createTree() {
-		Branch start = new Branch(driver);
+	public void createTree(int N, int max_depth, int max_children) {
+		Branch start = new Branch(driver, N, max_depth, max_children);
 		start.createTree();
 	}
 	
