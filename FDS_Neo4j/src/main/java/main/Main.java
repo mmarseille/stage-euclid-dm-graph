@@ -10,8 +10,8 @@ public class Main {
 			hello.printGreeting2("t'habites dans le coin ou quoi");
 		}*/
 		int N = 50;
-		int max_depth = 5;
-		int max_children = 3;
+		int max_depth = 10;
+		int max_children = 5;
 		
 		try( Neo4J_Tree tree = new Neo4J_Tree("bolt://localhost:11005", "neo4j", "0") ){
 			tree.deleteTree();

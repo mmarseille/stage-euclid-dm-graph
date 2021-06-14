@@ -140,8 +140,14 @@ public class Branch {
 	private void addChildren(int depth) {
 		if (nb_nodes == N || depth >= (int) (max_depth+new Random().nextGaussian())) return;
 
-		//int nb = (int) (1+(Math.random() * Math.min(max_children-1, N-nb_nodes-1)));
-		int nb = 1+ Math.min((depth == 0)? 20 : max_children-1, N-nb_nodes-1);
+		int child_max = (depth == 0)? 20: max_children;
+		double random = (depth == 0)? 1 : Math.random();
+		
+		//Arêtes random
+		int nb = (int) (1+ (random * Math.min(child_max-1, N-nb_nodes-1)));	
+
+		//Arêtes max
+		//int nb = 1 + Math.min(child_max-1, N-nb_nodes-1);
 		
 		nb_nodes += nb;
 
@@ -152,7 +158,7 @@ public class Branch {
 		
 		try ( Session session = driver.session() ){
 			for (int i=0; i<nb; i++) {
-				Branch child = new Branch(driver, parent, String.format("n%s",nb_nodes-nb+i+1));
+				Branch child = new Branch(driver, this, String.format("n%s",nb_nodes-nb+i+1));
 				child.setDepth(depth);
 				children.add(child);
 				
