@@ -15,6 +15,7 @@ public class Neo4J_Tree implements AutoCloseable{
 	}
 	
 	public void createTree(int N, int max_depth, int max_children) {
+		//BranchIter start = new BranchIter(driver, N, max_depth, max_children);
 		Branch start = new Branch(driver, N, max_depth, max_children);
 		start.createTree();
 	}

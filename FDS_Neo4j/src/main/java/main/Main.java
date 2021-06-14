@@ -9,7 +9,7 @@ public class Main {
 			hello.deleteNodes();
 			hello.printGreeting2("t'habites dans le coin ou quoi");
 		}*/
-		int N = 3000;
+		int N = 25000;
 		int max_depth = 10;
 		int max_children = 5;
 		
@@ -17,9 +17,9 @@ public class Main {
 			tree.deleteTree();
 			double start = System.currentTimeMillis();
 			tree.createTree(N, max_depth, max_children);		
-			System.out.println(System.currentTimeMillis() - start);
+			System.out.println("TOTAL: "+(System.currentTimeMillis() - start));
 		}
-		
+
 	}
-	
+
 }
