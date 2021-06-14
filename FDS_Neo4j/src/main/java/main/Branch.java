@@ -25,6 +25,8 @@ public class Branch {
 	private static int N;
 	private static int max_depth;
 	private static int max_children;
+	
+	private static String script = "";
 
 	private String nodename;
 	private Branch parent = null;
@@ -43,45 +45,28 @@ public class Branch {
 		this.driver = driver;
 		this.nodename = String.format("n%s", node_id);
 		
-		try ( Session session = driver.session() ){
-				session.writeTransaction(new TransactionWork<Void>() {
-
-					@Override
-					public Void execute(Transaction tx) {
-						tx.run(String.format("CREATE (%s:Node{name: $name}) ",Branch.this.nodename), parameters("name",Branch.this.nodename));
-						return null;
-					}
-
-			});
-		}
-		
+		Branch.script += String.format("CREATE (%s:Node{name: '%s'})\n", this.nodename, this.nodename);
+				
 		node_id++;
 		nb_nodes++;
 	}
 		
 	
-	public Branch(Driver driver, Branch parent, String nodeName) {
+	public Branch(Driver driver, Branch parent) {
 		this.driver = driver;
 		this.parent = parent;
 		this.nodename = String.format("n%s", node_id);
-		try ( Session session = driver.session() ){
-			session.writeTransaction(new TransactionWork<Void>() {
 
-				@Override
-				public Void execute(Transaction tx) {
-					tx.run(String.format("CREATE (%s:Node{name: $name}) ",Branch.this.nodename), parameters("name",Branch.this.nodename));
-					return null;
-				}
-			
-			
-			});
-		}
+		Branch.script += String.format("CREATE (%s:Node{name: '%s'})\n", this.nodename, this.nodename);
 	
 		node_id++;
 	}
 	
 	public void createTree() {
 		addChildren(depth);
+		script += ";";
+		//System.out.println(script);
+		executeScript();
 	}
 	
 	/*public void addChild(int nb) {
@@ -156,33 +141,33 @@ public class Branch {
 		
 		depth++;
 		
-		try ( Session session = driver.session() ){
-			for (int i=0; i<nb; i++) {
-				Branch child = new Branch(driver, this, String.format("n%s",nb_nodes-nb+i+1));
-				child.setDepth(depth);
-				children.add(child);
-				
-				session.writeTransaction(new TransactionWork<Void>() {
-
-					@Override
-					public Void execute(Transaction tx) {
-						int nb_children = children.size();
-						Branch last_child = children.get(nb_children-1);
-						//tx.run(String.format("CREATE (%s)-[:CHILD_OF]->(%s)", last_child.nodename, Branch.this.nodename));
-						tx.run("MATCH (n1:Node) WHERE n1.name = $name1 "+
-								"MATCH (n2:Node) WHERE n2.name = $name2 "+
-								"CREATE (n1)-[:CHILD_OF]->(n2)", parameters("name1",last_child.nodename, "name2", nodename));
-						return null;
-					}
-
-
-				});
-				child.addChildren(depth);
-			}
-		
+		for (int i=0; i<nb; i++) {
+			Branch child = new Branch(driver, this);
+			child.setDepth(depth);
+			children.add(child);
+			
+			script += String.format("CREATE (%s)-[:CHILD_OF]->(%s)\n",child.nodename, nodename);
+			
+			child.addChildren(depth);
 		}
+		
+
 		
 	}
 	
+	
+	public void executeScript() {
+		try(Session session = driver.session()){
+			session.writeTransaction(new TransactionWork<Void>() {
+
+				@Override
+				public Void execute(Transaction tx) {
+					tx.run(script);
+					return null;
+				}
+
+			});
+		}
+	}
 
 }

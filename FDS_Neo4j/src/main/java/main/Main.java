@@ -9,13 +9,15 @@ public class Main {
 			hello.deleteNodes();
 			hello.printGreeting2("t'habites dans le coin ou quoi");
 		}*/
-		int N = 50;
+		int N = 3000;
 		int max_depth = 10;
 		int max_children = 5;
 		
 		try( Neo4J_Tree tree = new Neo4J_Tree("bolt://localhost:11005", "neo4j", "0") ){
 			tree.deleteTree();
+			double start = System.currentTimeMillis();
 			tree.createTree(N, max_depth, max_children);		
+			System.out.println(System.currentTimeMillis() - start);
 		}
 		
 	}
