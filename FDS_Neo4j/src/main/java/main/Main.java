@@ -9,7 +9,7 @@ public class Main {
 			hello.deleteNodes();
 			hello.printGreeting2("t'habites dans le coin ou quoi");
 		}*/
-		int N = 25;
+		int N = 50;
 		int max_depth = 5;
 		int max_children = 3;
 		
