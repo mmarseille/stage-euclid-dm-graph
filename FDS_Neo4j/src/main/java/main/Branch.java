@@ -24,8 +24,7 @@ public class Branch {
 	
 	private static int N;
 	private static int max_depth;
-	private static int max_c;
-	private int max_children;
+	private static int max_children;
 
 	private String nodename;
 	private Branch parent = null;
@@ -38,7 +37,7 @@ public class Branch {
 
 	public Branch(Driver driver, int N, int max_depth, int max_children) {
 		Branch.N = N;
-		Branch.max_c = max_children;
+		Branch.max_children = max_children;
 		Branch.max_depth = max_depth;
 		
 		this.driver = driver;
@@ -61,10 +60,9 @@ public class Branch {
 	}
 		
 	
-	public Branch(Driver driver, Branch parent, String nodeName, int max_children) {
+	public Branch(Driver driver, Branch parent, String nodeName) {
 		this.driver = driver;
 		this.parent = parent;
-		this.max_children = max_children;
 		this.nodename = String.format("n%s", node_id);
 		try ( Session session = driver.session() ){
 			session.writeTransaction(new TransactionWork<Void>() {
@@ -141,22 +139,20 @@ public class Branch {
 	
 	private void addChildren(int depth) {
 		if (nb_nodes == N || depth >= (int) (max_depth+new Random().nextGaussian())) return;
-		
-		this.max_children = (depth == 0)? 20 : max_c;
 
 		//int nb = (int) (1+(Math.random() * Math.min(max_children-1, N-nb_nodes-1)));
-		int nb = 1+ Math.min(max_children-1, N-nb_nodes-1);
+		int nb = 1+ Math.min((depth == 0)? 20 : max_children-1, N-nb_nodes-1);
 		
 		nb_nodes += nb;
 
-		System.out.println("DEPTH: "+depth);
-		System.out.println("NB_NODES: "+nb_nodes);
+//		System.out.println("DEPTH: "+depth);
+//		System.out.println("NB_NODES: "+nb_nodes);
 		
 		depth++;
 		
 		try ( Session session = driver.session() ){
 			for (int i=0; i<nb; i++) {
-				Branch child = new Branch(driver, parent, String.format("n%s",nb_nodes-nb+i+1), this.max_children);
+				Branch child = new Branch(driver, parent, String.format("n%s",nb_nodes-nb+i+1));
 				child.setDepth(depth);
 				children.add(child);
 				
