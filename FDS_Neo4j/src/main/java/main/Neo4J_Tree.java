@@ -14,22 +14,25 @@ public class Neo4J_Tree implements AutoCloseable{
 		driver = GraphDatabase.driver(uri, AuthTokens.basic(user, password));
 	}
 	
-	public void createTree(int N, int max_depth, int max_children) {
+	public double createTree(int N, int max_depth, int max_children) {
 		BranchIter start = new BranchIter(driver, N, max_depth, max_children);
-		start.createTree();
+		return start.createTree();
 	}
 	
-	public void createTree(int N, int max_depth, int max_children, boolean iter) {
+	public double createTree(int N, int max_depth, int max_children, boolean iter) {
 		if (iter) {
 			BranchIter start = new BranchIter(driver, N, max_depth, max_children);
-			start.createTree();
+			return start.createTree();
 		} else {
 			Branch start = new Branch(driver, N, max_depth, max_children);			
-			start.createTree();
+			return start.createTree();
 		}
 	}
 	
-	public void deleteTree() {
+	public double deleteTree() {
+		double start, end;
+		
+		start = System.currentTimeMillis();
 		try (Session session = driver.session()){
 			session.writeTransaction(new TransactionWork<Void>() {
 
@@ -41,6 +44,10 @@ public class Neo4J_Tree implements AutoCloseable{
 				
 			});
 		}
+		end = System.currentTimeMillis() - start;
+		System.out.println(String.format("TEMPS SUPPRESSION: %.3fs",(end/1000)));
+		
+		return end;
 	}
 
 	@Override

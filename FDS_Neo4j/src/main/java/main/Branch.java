@@ -62,15 +62,26 @@ public class Branch {
 		node_id++;
 	}
 	
-	public void createTree() {
-		long start = System.currentTimeMillis();
+	public double createTree() {
+		double start, end;
+		
+		//Génération script arbre
+		start = System.currentTimeMillis();
 		addChildren(depth);
 		script += ";";
-		System.out.println("ARBRE: "+(System.currentTimeMillis()-start));
+		end = System.currentTimeMillis()-start;
+		System.out.println(String.format("ARBRE: %.3fs",(end/1000)));
+		
+		//Affichage du script généré
 		//System.out.println(script);
-//		start = System.currentTimeMillis();
-//		executeScript();
-//		System.out.println("SCRIPT: "+(System.currentTimeMillis()-start));
+		
+		//Génération arbre
+		start = System.currentTimeMillis();
+		executeScript();
+		end = System.currentTimeMillis()-start;
+		System.out.println(String.format("SCRIPT: %.3fs",(end/1000)));
+		
+		return end;
 	}
 	
 	/*public void addChild(int nb) {
