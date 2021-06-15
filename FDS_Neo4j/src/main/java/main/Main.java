@@ -21,33 +21,41 @@ public class Main {
 			hello.deleteNodes();
 			hello.printGreeting2("t'habites dans le coin ou quoi");
 		}*/
-		int nb_iter = 20;
+		int nb_iter = 14;
 		
-		int N = 1000;
+		int N = 100;
 		int max_depth = 10;
 		int max_children = 5;
+		
+		String titleSep = "************";
+		String itSep = "----------------------";
+		String resSep = "===============================";
 		
 		List<Double> createTimes = new ArrayList<Double>();
 		List<Double> deleteTimes = new ArrayList<Double>();
 		
-		double start, end;
-
 		try( Neo4J_Tree tree = new Neo4J_Tree("bolt://localhost:11005", "neo4j", "0") ){
 			for (int i=0; i<nb_iter; i++) {
-				//Temps génération arbre
-				start = System.currentTimeMillis();			
+				if ( (i+1)%5 == 0 || (i+1) == nb_iter){
+					System.out.println(titleSep);
+					System.out.println(String.format("ITERATION %d/%d", (i+1), nb_iter));
+					System.out.println(titleSep);
+					}
+				
+				//Temps génération arbre	
 				createTimes.add(tree.createTree(N, max_depth, max_children));	
-				end = System.currentTimeMillis() - start;
-				System.out.println(String.format("TOTAL: %.3fs",end));
 				
 				//Temps suppression arbre
 				deleteTimes.add(tree.deleteTree());
+				
+				System.out.println(itSep);
 			}
 			
-			System.out.println("====================================");
+			System.out.println(resSep);
 			System.out.println(String.format("MOYENNE DE %d ITERATIONS", nb_iter));
-			System.out.println(String.format("GENERATION ARBRE: %3fs", getAverage(createTimes)));
-			System.out.println(String.format("SUPPRESSION ARBRE: %3fs", getAverage(deleteTimes)));
+			System.out.println(resSep);
+			System.out.println(String.format("GENERATION ARBRE: %.3fs", getAverage(createTimes)));
+			System.out.println(String.format("SUPPRESSION ARBRE: %.3fs", getAverage(deleteTimes)));
 		}
 
 	}

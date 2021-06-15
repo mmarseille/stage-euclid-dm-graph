@@ -81,7 +81,13 @@ public class BranchIter {
 		end = System.currentTimeMillis()-start;
 		System.out.println(String.format("SCRIPT: %.3fs",(end/1000)));
 		
-		return end;
+		return end/1000;
+	}
+	
+	public void resetTree() {
+		script = "";
+		node_id = 0;
+		nb_nodes = 0;
 	}
 	
 	/*public void addChild(int nb) {

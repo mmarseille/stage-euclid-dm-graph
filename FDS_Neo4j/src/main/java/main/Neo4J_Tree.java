@@ -9,23 +9,24 @@ import org.neo4j.driver.TransactionWork;
 
 public class Neo4J_Tree implements AutoCloseable{
 	private final Driver driver;
+	private BranchIter root;
 	
 	public Neo4J_Tree(String uri, String user, String password) {
 		driver = GraphDatabase.driver(uri, AuthTokens.basic(user, password));
 	}
 	
 	public double createTree(int N, int max_depth, int max_children) {
-		BranchIter start = new BranchIter(driver, N, max_depth, max_children);
-		return start.createTree();
+		root = new BranchIter(driver, N, max_depth, max_children);
+		return root.createTree();
 	}
 	
 	public double createTree(int N, int max_depth, int max_children, boolean iter) {
 		if (iter) {
-			BranchIter start = new BranchIter(driver, N, max_depth, max_children);
-			return start.createTree();
+			BranchIter root = new BranchIter(driver, N, max_depth, max_children);
+			return root.createTree();
 		} else {
-			Branch start = new Branch(driver, N, max_depth, max_children);			
-			return start.createTree();
+			Branch root = new Branch(driver, N, max_depth, max_children);			
+			return root.createTree();
 		}
 	}
 	
@@ -47,7 +48,9 @@ public class Neo4J_Tree implements AutoCloseable{
 		end = System.currentTimeMillis() - start;
 		System.out.println(String.format("TEMPS SUPPRESSION: %.3fs",(end/1000)));
 		
-		return end;
+		root.resetTree();
+		
+		return end/1000;
 	}
 
 	@Override
