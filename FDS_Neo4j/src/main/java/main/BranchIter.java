@@ -22,7 +22,7 @@ public class BranchIter {
 	
 	private static int nb_nodes = 0;
 	private static int node_id = 0;
-	private int depth = 1;
+	private int depth;
 	
 	private static int N;
 	private static int max_depth;
@@ -42,6 +42,7 @@ public class BranchIter {
 		
 		this.driver = driver;
 		this.nodename = String.format("n%s", node_id);
+		this.depth = 0;
 		
 		BranchIter.script += String.format("CREATE (%s:Node{name: '%s'})\n", this.nodename, this.nodename);
 				
@@ -54,6 +55,7 @@ public class BranchIter {
 		this.driver = driver;
 		this.parent = parent;
 		this.nodename = String.format("n%s", node_id);
+		this.depth = parent.depth + 1;
 
 		BranchIter.script += String.format("CREATE (%s:Node{name: '%s'})\n", this.nodename, this.nodename);
 	
@@ -65,10 +67,10 @@ public class BranchIter {
 		addChildren();
 		script += ";";
 		System.out.println("ARBRE: "+(System.currentTimeMillis()-start));
-//		System.out.println(script);
-//		start = System.currentTimeMillis();
-//		executeScript();
-//		System.out.println("SCRIPT: "+(System.currentTimeMillis()-start));
+		//System.out.println(script);
+		start = System.currentTimeMillis();
+		executeScript();
+		System.out.println("SCRIPT: "+(System.currentTimeMillis()-start));
 	}
 	
 	/*public void addChild(int nb) {
@@ -124,9 +126,7 @@ public class BranchIter {
 		}
 	}*/
 	
-	private void addChildren() {
-		int depth = 0;
-		
+	private void addChildren() {		
 		Stack<BranchIter> branches = new Stack<BranchIter>();
 		branches.add(this);
 		
@@ -138,8 +138,8 @@ public class BranchIter {
 			}
 
 
-			int child_max = (depth == 0)? 20: max_children;
-			double random = (depth == 0)? 1 : Math.random();
+			int child_max = (currentNode.depth == 0)? Math.max(nb_nodes, 20) : max_children;
+			double random = (currentNode.depth == 0)? 1 : Math.random();
 			
 			//Arêtes random
 			int nb = (int) (1+ (random * Math.min(child_max-1, N-nb_nodes-1)));	
@@ -151,9 +151,7 @@ public class BranchIter {
 	
 	//		System.out.println("DEPTH: "+depth);
 	//		System.out.println("NB_NODES: "+nb_nodes);
-			
-			depth++;
-			
+						
 			for (int i=0; i<nb; i++) {
 				BranchIter child = new BranchIter(driver, currentNode);
 				children.add(child);

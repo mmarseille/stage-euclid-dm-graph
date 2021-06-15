@@ -9,13 +9,14 @@ public class Main {
 			hello.deleteNodes();
 			hello.printGreeting2("t'habites dans le coin ou quoi");
 		}*/
-		int N = 25000;
+		int N = 1000;
 		int max_depth = 10;
 		int max_children = 5;
 		
+		long start;
+
 		try( Neo4J_Tree tree = new Neo4J_Tree("bolt://localhost:11005", "neo4j", "0") ){
-			tree.deleteTree();
-			double start = System.currentTimeMillis();
+			start = System.currentTimeMillis();			
 			tree.createTree(N, max_depth, max_children);		
 			System.out.println("TOTAL: "+(System.currentTimeMillis() - start));
 		}
