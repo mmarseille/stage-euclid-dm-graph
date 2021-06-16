@@ -162,10 +162,10 @@ public class BranchIter {
 			double random = (currentNode.depth == 0)? 1 : Math.random();
 			
 			//Arêtes random
-			//int nb = (int) (1+ (random * Math.min(child_max-1, N-nb_nodes-1)));	
+			int nb = (int) (1+ (random * Math.min(child_max-1, N-nb_nodes-1)));	
 	
 			//Arêtes max
-			int nb = 1 + Math.min(child_max-1, N-nb_nodes-1);
+			//int nb = 1 + Math.min(child_max-1, N-nb_nodes-1);
 			
 			nb_nodes += nb;
 	
