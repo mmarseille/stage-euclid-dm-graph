@@ -1,18 +1,12 @@
 package main;
 
-import static org.neo4j.driver.Values.parameters;
-
-import java.time.Duration;
-import java.time.Instant;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Random;
 
 import org.neo4j.driver.Driver;
-import org.neo4j.driver.Result;
 import org.neo4j.driver.Session;
-import org.neo4j.driver.Transaction;
-import org.neo4j.driver.TransactionWork;
 
 public class Branch {
 	private final Driver driver;
@@ -21,6 +15,7 @@ public class Branch {
 
 	private static int nb_nodes = 0;
 	private static int node_id = 0;
+	private static List<Float> paramNode, paramRel;
 	
 	private static int N;
 	private static int max_depth;
@@ -45,7 +40,15 @@ public class Branch {
 		this.driver = driver;
 		this.nodename = String.format("n%s", node_id);
 		
-		Branch.script += String.format("CREATE (%s:Node{name: '%s'})\n", this.nodename, this.nodename);
+		Float[] data = new Float[80];
+		Arrays.fill(data,Float.valueOf(0));
+		paramNode = Arrays.asList(data);
+		
+		Float[] dataRel = new Float[10];
+		Arrays.fill(data,Float.valueOf(0));
+		paramRel = Arrays.asList(dataRel);
+		
+		Branch.script += String.format("CREATE (%s:Node{name: '%s', param:%s})\n", this.nodename, this.nodename, paramNode);
 				
 		node_id++;
 		nb_nodes++;
@@ -56,8 +59,8 @@ public class Branch {
 		this.driver = driver;
 		this.parent = parent;
 		this.nodename = String.format("n%s", node_id);
-
-		Branch.script += String.format("CREATE (%s:Node{name: '%s'})\n", this.nodename, this.nodename);
+		
+		Branch.script += String.format("CREATE (%s:Node{name: '%s', param:%s})\n", this.nodename, this.nodename, paramNode);
 	
 		node_id++;
 	}
@@ -87,7 +90,7 @@ public class Branch {
 	public void resetTree() {
 		script = "";
 		node_id = 0;
-		nb_nodes = 1;
+		nb_nodes = 0;
 	}
 	
 	/*public void addChild(int nb) {
@@ -150,10 +153,10 @@ public class Branch {
 		double random = (depth == 0)? 1 : Math.random();
 		
 		//Arêtes random
-		int nb = (int) (1+ (random * Math.min(child_max-1, N-nb_nodes-1)));	
+		//int nb = (int) (1+ (random * Math.min(child_max-1, N-nb_nodes-1)));	
 
 		//Arêtes max
-		//int nb = 1 + Math.min(child_max-1, N-nb_nodes-1);
+		int nb = 1 + Math.min(child_max-1, N-nb_nodes-1);
 		
 		nb_nodes += nb;
 
@@ -167,7 +170,7 @@ public class Branch {
 			child.setDepth(depth);
 			children.add(child);
 			
-			script += String.format("CREATE (%s)-[:CHILD_OF]->(%s)\n",child.nodename, nodename);
+			script += String.format("CREATE (%s)-[:CHILD_OF{param:%s}]->(%s)\n",child.nodename, paramRel, nodename);
 			
 			child.addChildren(depth);
 		}
@@ -179,15 +182,7 @@ public class Branch {
 	
 	public void executeScript() {
 		try(Session session = driver.session()){
-			session.writeTransaction(new TransactionWork<Void>() {
-
-				@Override
-				public Void execute(Transaction tx) {
-					tx.run(script);
-					return null;
-				}
-
-			});
+			session.run(script);
 		}
 	}
 

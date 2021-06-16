@@ -21,10 +21,10 @@ public class Main {
 			hello.deleteNodes();
 			hello.printGreeting2("t'habites dans le coin ou quoi");
 		}*/
-		int nb_iter = 14;
+		int nb_iter = 10;
 		
-		int N = 100;
-		int max_depth = 10;
+		int N = 5000;
+		int max_depth = 12;
 		int max_children = 5;
 		
 		String titleSep = "************";
@@ -50,7 +50,7 @@ public class Main {
 				
 				System.out.println(itSep);
 			}
-			
+						
 			System.out.println(resSep);
 			System.out.println(String.format("MOYENNE DE %d ITERATIONS", nb_iter));
 			System.out.println(resSep);

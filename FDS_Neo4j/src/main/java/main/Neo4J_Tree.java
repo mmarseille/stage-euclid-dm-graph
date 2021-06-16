@@ -4,8 +4,6 @@ import org.neo4j.driver.AuthTokens;
 import org.neo4j.driver.Driver;
 import org.neo4j.driver.GraphDatabase;
 import org.neo4j.driver.Session;
-import org.neo4j.driver.Transaction;
-import org.neo4j.driver.TransactionWork;
 
 public class Neo4J_Tree implements AutoCloseable{
 	private final Driver driver;
@@ -35,15 +33,7 @@ public class Neo4J_Tree implements AutoCloseable{
 		
 		start = System.currentTimeMillis();
 		try (Session session = driver.session()){
-			session.writeTransaction(new TransactionWork<Void>() {
-
-				@Override
-				public Void execute(Transaction tx) {
-					tx.run("MATCH (n) DETACH DELETE n");
-					return null;
-				}
-				
-			});
+			session.run("MATCH (n) DETACH DELETE n");
 		}
 		end = System.currentTimeMillis() - start;
 		System.out.println(String.format("TEMPS SUPPRESSION: %.3fs",(end/1000)));
