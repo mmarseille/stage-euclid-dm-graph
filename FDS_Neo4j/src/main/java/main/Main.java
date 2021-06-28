@@ -15,15 +15,9 @@ public class Main {
 	}
 
 	public static void main(String[] args) throws Exception{
-		/*try(HelloWorld hello = new HelloWorld("bolt://localhost:11005","neo4j","0")){
-			hello.deleteNodes();
-			hello.printGreeting("bien ou quoi");
-			hello.deleteNodes();
-			hello.printGreeting2("t'habites dans le coin ou quoi");
-		}*/
 		int nb_iter = 10;
 		
-		int N = 5000;
+		int N = 1000;
 		int max_depth = 12;
 		int max_children = 5;
 		
@@ -34,7 +28,9 @@ public class Main {
 		List<Double> createTimes = new ArrayList<Double>();
 		List<Double> deleteTimes = new ArrayList<Double>();
 		
-		try( Neo4J_Tree tree = new Neo4J_Tree("bolt://localhost:11005", "neo4j", "0") ){
+		try( Neo4J_Tree tree = new Neo4J_Tree("bolt://localhost:7687", "neo4j", "0") ){
+			//deleteTimes.add(tree.deleteTree());
+			
 			for (int i=0; i<nb_iter; i++) {
 				if ( (i+1)%5 == 0 || (i+1) == nb_iter){
 					System.out.println(titleSep);
@@ -50,6 +46,8 @@ public class Main {
 				
 				System.out.println(itSep);
 			}
+			
+			createTimes.add(tree.createTree(N, max_depth, max_children));	
 						
 			System.out.println(resSep);
 			System.out.println(String.format("MOYENNE DE %d ITERATIONS", nb_iter));
