@@ -3,7 +3,17 @@ package main;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * Réalise les mesures sur l'arbre créé en Neo4J
+ * @author Benjamin Bardy
+ *
+ */
 public class Main {
+	/**
+	 * Donne la durée moyenne de l'expérience
+	 * @param timeList la liste des mesures temporelles
+	 * @return la durée moyenne
+	 */
 	public static double getAverage(List<Double> timeList) {
 		double total = 0;
 		
@@ -47,7 +57,7 @@ public class Main {
 				System.out.println(itSep);
 			}
 			
-			createTimes.add(tree.createTree(N, max_depth, max_children));	
+			//createTimes.add(tree.createTree(N, max_depth, max_children));	
 						
 			System.out.println(resSep);
 			System.out.println(String.format("MOYENNE DE %d ITERATIONS", nb_iter));

@@ -11,9 +11,13 @@ import java.util.Stack;
 
 import org.neo4j.driver.Driver;
 import org.neo4j.driver.Session;
-import org.neo4j.driver.Transaction;
-import org.neo4j.driver.TransactionWork;
 
+/**
+ * Construit l'arbre en Neo4J
+ * 
+ * @author Benjamin Bardy
+ *
+ */
 public class BranchIter {
 	private final Driver driver;
 	
@@ -23,7 +27,6 @@ public class BranchIter {
 	private static int nb_nodes = 0;
 	private static int node_id = 0;
 	private static List<Float> paramNode;
-	
 	
 	private static int N;
 	private static int max_depth;
@@ -38,6 +41,14 @@ public class BranchIter {
 	private List<String> children_ids;
 
 	
+	/**
+	 * Initialise l'arbre et crée le premier noeud
+	 * 
+	 * @param driver le lien vers la base Neo4J
+	 * @param N le nombre de noeuds du graphe
+	 * @param max_depth la profondeur maximale de l'arbre
+	 * @param max_children le nombre d'enfants maximum pour chaque noeud
+	 */
 	public BranchIter(Driver driver, int N, int max_depth, int max_children) {
 		BranchIter.N = N;
 		BranchIter.max_children = max_children;
@@ -48,6 +59,10 @@ public class BranchIter {
 		this.nodename = String.format("n%s", node_id);
 		this.depth = 0;
 		
+		/*
+		Une liste de 80 flottants en paramètre des noeuds afin de 
+		simuler leur poids en conditions réelles 
+		*/
 		Float[] data = new Float[80];
 		Arrays.fill(data,Float.valueOf(0));
 		paramNode = Arrays.asList(data);
@@ -56,17 +71,47 @@ public class BranchIter {
 		nb_nodes++;
 	}
 		
-	
+	/**
+	 * Crée un noeud fils et spécifie son père
+	 * 
+	 * @param driver le lien vers la base Neo4J
+	 * @param parent le noeud père du noeud créé
+	 */
 	public BranchIter(Driver driver, BranchIter parent) {
 		this.driver = driver;
 		this.parent = parent;
 		this.nodename = String.format("n%s", node_id);
 		this.depth = parent.depth + 1;
+		//Profondeur maximale ayant une probabilité d'être supérieure ou inférieure à celle spécifiée
 		this.node_maxDepth = (int) (BranchIter.max_depth + new Random().nextGaussian());
 	
 		node_id++;
 	}
+
+
+	/**
+	 * Récupère le noeud parent du noeud actuel
+	 * @return le noeud parent
+	 */
+	public BranchIter getParent() {
+		return parent;
+	}
+
 	
+	/**
+	 * Remet à zéro le compteur de noeuds et des ids
+	 */
+	public void resetTree() {
+		node_id = 0;
+		nb_nodes = 0;
+	}
+
+
+	/**
+	 * Crée l'arbre dans la base Neo4J
+	 * 
+	 * @return la durée totale de création de l'arbre
+	 */
 	public double createTree() {
 		double start, startTree, startMid, endTree, end;
 		
@@ -77,15 +122,14 @@ public class BranchIter {
 		System.out.println(String.format("NOEUDS: %.3fs",(end/1000)));
 		
 		//Affichage du script généré
-		//System.out.println(script);
 		startTree = System.currentTimeMillis();
-		addChildren();
+		buildTree();
 		endTree = System.currentTimeMillis() - startTree;
 		System.out.println(String.format("treebuild: %.3fs",(endTree/1000)));
 		
 		//Génération arbre
 		startMid = System.currentTimeMillis();
-		executeScript();
+		createRelationships();
 		end = System.currentTimeMillis() - startMid;
 		System.out.println(String.format("REL: %.3fs",(end/1000)));
 		
@@ -96,6 +140,9 @@ public class BranchIter {
 	}
 	
 
+	/**
+	 * Crée les noeuds de l'arbre dans la base
+	 */
 	private void createNodes() {		
 		nodeList = new ArrayList<>(N);
 		
@@ -109,6 +156,7 @@ public class BranchIter {
 		}
 		
 		try(Session session = driver.session()){
+			//Création d'une contrainte d'unicité sur les noeuds pour améliorer les performances
 			session.run("CREATE CONSTRAINT uniq_id IF NOT EXISTS ON (n:Node) ASSERT n.name IS UNIQUE");
 			
 			if (N <= batchSize) {
@@ -130,13 +178,16 @@ public class BranchIter {
 		}
 	}
 	
-	public void resetTree() {
-		node_id = 0;
-		nb_nodes = 0;
-	}
 	
 	
-	private void addChildren() {		
+	/**
+	 * Génère les différentes relations représentant l'arbre
+	 */
+	private void buildTree() {		
+		/*
+		Une liste de 10 flottants en paramètre des relations 
+		afin de simuler leur poids en conditions réelles 
+		*/
 		Float[] data = new Float[10];
 		Arrays.fill(data,Float.valueOf(0));
 		List<Float> paramRel = Arrays.asList(data);
@@ -158,6 +209,10 @@ public class BranchIter {
 			}
 
 
+			/*
+			Le premier noeud a obligatoirement 20 fils de façon à 
+			se rapprocher le plus possible du jeu de données réel
+			 */
 			int child_max = (currentNode.depth == 0)? Math.max(nb_nodes, 20) : max_children;
 			double random = (currentNode.depth == 0)? 1 : Math.random();
 			
@@ -172,7 +227,7 @@ public class BranchIter {
 	//		System.out.println("DEPTH: "+depth);
 	//		System.out.println("NB_NODES: "+nb_nodes);
 						
-			
+			//HashMap représentant le lien entre le noeud actuel et ses fils
 			rel = new HashMap<>();
 
 			currentNode.children_ids = new ArrayList<String>(nb);
@@ -194,7 +249,10 @@ public class BranchIter {
 				
 	}
 	
-	public void executeScript() {
+	/**
+	 * Insère dans la base les relations obtenues précédemment
+	 */
+	private void createRelationships() {
 		int relSize = relList.size();
 		
 		try(Session session = driver.session()){
@@ -215,9 +273,6 @@ public class BranchIter {
 		}
 	}
 	
-	public BranchIter getParent() {
-		return parent;
-	}
 
 
 }
